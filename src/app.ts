@@ -8,7 +8,6 @@ const app: Application = express();
 
 app.use(express.json());
 
-// Registra as rotas
 app.use("/api", router);
 
 export default app;
