@@ -1,13 +1,11 @@
-import express, { Application } from "express";
 import dotenv from "dotenv";
-import router from "./routes/auth.routes";
+import fastify from "fastify";
+import { appRoutes } from "./routes/auth.routes";
 
 dotenv.config();
 
-const app: Application = express();
+const app = fastify();
 
-app.use(express.json());
-
-app.use("/api", router);
+app.register(appRoutes, { prefix: "/api" });
 
 export default app;
