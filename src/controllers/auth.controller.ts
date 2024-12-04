@@ -1,35 +1,26 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { ZodError } from "zod";
+import { ErrorHandler } from "../helpers/ErrorHandler";
 import { userSchema } from "../schemas/auth.schema";
-import { registerService } from "../services/auth.service";
+import { UserService } from "../services/auth.service";
+import { PrismaUsersRepository } from "./../repositories/prisma/prisma-user-repository";
 
-export async function registerController(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
+export async function register(request: FastifyRequest, reply: FastifyReply) {
   try {
+    const prismaUsersRepository = new PrismaUsersRepository();
+    const usersRepository = new UserService(prismaUsersRepository);
+
     const { email, password } = userSchema.parse(request.body);
 
-    const result = await registerService({ email, password });
+    const result = await usersRepository.register({ email, password });
 
-    return reply.send(result);
+    return reply
+      .code(201)
+      .send({ message: "User create successfully!", data: result });
   } catch (error) {
-    if (error instanceof ZodError) {
-      return reply.code(400).send({
-        message: "Erro de validação",
-        errors: error.errors.map((err) => ({
-          field: err.path.join("."),
-          message: err.message,
-        })),
-      });
-    }
+    ErrorHandler(error, reply);
 
-    if (error instanceof Error) {
-      return reply.code(400).send({
-        message: error.message,
-      });
-    }
-
-    return reply.code(500).send({ message: "Erro interno do servidor" });
+    return reply
+      .code(500)
+      .send({ message: "Erro interno do servidor", error: error });
   }
 }
