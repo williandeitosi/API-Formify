@@ -1,9 +1,8 @@
-import { Router } from "express";
-import AuthController from "../controllers/auth.controller";
-const router = Router();
+import type { FastifyInstance } from "fastify";
+import { registerController } from "../controllers/auth.controller";
 
-const authController = new AuthController();
+async function appRoutes(app: FastifyInstance) {
+  app.post("/register", registerController);
+}
 
-router.get("/register", authController.registerUser);
-
-export default router;
+export { appRoutes };
