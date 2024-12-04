@@ -1,17 +1,24 @@
-import prisma from "../config/prisma";
+import { hash } from "bcrypt";
+import { PrismaUsersRepository } from "../repositories/prisma/prisma-user-repository";
+import type { UsersRepository } from "../repositories/users-repository";
+import type { userInput } from "../schemas/auth.schema";
 
-export async function registerService(userData: {
-  email: string;
-  password: string;
-}) {
-  const isExists = await prisma.user.findUnique({
-    where: { email: userData.email },
-  });
+export class UserService {
+  constructor(private usersRepository: UsersRepository) {}
 
-  if (isExists) {
-    throw new Error("Usuario ja resgistrado");
+  async register({ email, password }: userInput) {
+    const prismaUsersRepository = new PrismaUsersRepository();
+    const isExists = await prismaUsersRepository.findByEmail(email);
+    if (isExists) {
+      throw new Error("User is exists!");
+    }
+    const hashPassword = await hash(password, 10);
+
+    const newUser = await prismaUsersRepository.create({
+      email,
+      password: hashPassword,
+    });
+
+    return { ...newUser, password: undefined };
   }
-
-  await prisma.user.create({ data: userData });
-  return { success: true, message: "User registered successfully!" };
 }
