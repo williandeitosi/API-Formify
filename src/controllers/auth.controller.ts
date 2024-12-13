@@ -4,11 +4,11 @@ import { userSchema } from "../schemas/auth.schema";
 import { UserService } from "../services/auth.service";
 import { PrismaUsersRepository } from "./../repositories/prisma/prisma-user-repository";
 
+const prismaUsersRepository = new PrismaUsersRepository();
+const usersRepository = new UserService(prismaUsersRepository);
+
 export async function register(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const prismaUsersRepository = new PrismaUsersRepository();
-    const usersRepository = new UserService(prismaUsersRepository);
-
     const { email, password } = userSchema.parse(request.body);
 
     const result = await usersRepository.register({ email, password });
@@ -27,15 +27,10 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
 
 export async function login(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const prismaUsersRepository = new PrismaUsersRepository();
-    const usersRepository = new UserService(prismaUsersRepository);
-
     const { email, password } = userSchema.parse(request.body);
 
     const result = await usersRepository.loginUser({ email, password });
-    return reply
-      .code(201)
-      .send({ message: "Login successfully!", data: result });
+    return reply.code(201).send({ message: "Login successfully!", result });
   } catch (error) {
     ErrorHandler(error, reply);
 
