@@ -1,32 +1,28 @@
 import { compare, hash } from "bcrypt";
 import jwt from "jsonwebtoken";
 import config from "../config/config";
-import { PrismaUsersRepository } from "../repositories/prisma/prisma-user-repository";
 import type { UsersRepository } from "../repositories/users-repository";
 import type { userInput } from "../schemas/auth.schema";
-
-const prismaUsersRepository = new PrismaUsersRepository();
 
 export class UserService {
   constructor(private usersRepository: UsersRepository) {}
 
   async register({ email, password }: userInput) {
-    const isExists = await prismaUsersRepository.findByEmail(email);
+    const isExists = await this.usersRepository.findByEmail(email);
     if (isExists) {
       throw new Error("User is exists!");
     }
     const hashPassword = await hash(password, 10);
 
-    const newUser = await prismaUsersRepository.create({
+    const newUser = await this.usersRepository.create({
       email,
       password: hashPassword,
     });
-
     return { ...newUser, password: undefined };
   }
 
   async loginUser({ email, password }: userInput) {
-    const userExists = await prismaUsersRepository.findByEmail(email);
+    const userExists = await this.usersRepository.findByEmail(email);
     if (!userExists) {
       throw new Error("User is not found");
     }
@@ -43,6 +39,6 @@ export class UserService {
     };
     const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: "3h" });
 
-    return { access_token: token };
+    return { access_token: token, email };
   }
 }
