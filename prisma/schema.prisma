@@ -23,7 +23,7 @@ model People {
   name     String
   cpf      String
   country  String
-  avatar   String
+  avatar   String?
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
 
